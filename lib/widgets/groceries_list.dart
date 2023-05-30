@@ -25,9 +25,68 @@ class _GroceriesListState extends State<GroceriesList> {
       _groceryItems.add(newGroceryItem);
     });
   }
+  void _deleteGroceryItem(GroceryItem groceryItem) {
+    final groceryItemIndex = _groceryItems.indexOf(groceryItem);
+    setState(() {
+      _groceryItems.remove(groceryItem);
+    });
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Theme.of(context).colorScheme.secondary,
+      duration: const Duration(seconds: 3),
+      content: const Text("Grocery Item Deleted."),
+      action: SnackBarAction(
+          label: "Undo",
+          onPressed: () {
+            setState(() {
+              _groceryItems.insert(groceryItemIndex, groceryItem);
+            });
+          }),
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
+
+    Widget mainContent = Center(
+      child: Container(
+        height: 400,
+        margin: const EdgeInsets.all(10),
+        child: Column(
+          children: <Widget>[
+            Image.asset(
+              "assets/images/empty-shopping-cart.png",
+              //fit: BoxFit.cover,
+            ),
+            const SizedBox(
+              height: 50,
+            ),
+            const Text(
+              "You have no grocery item yet.",
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (_groceryItems.isNotEmpty) {
+      mainContent = ListView.builder(
+        itemBuilder: (BuildContext context, int index) {
+          return Dismissible(
+              background: Container(
+              color: Theme.of(context).colorScheme.error.withOpacity(0.5),
+          ),
+          onDismissed: (direction){
+            _deleteGroceryItem( _groceryItems[index]);
+          },
+          key: ObjectKey(_groceryItems[index]),
+          child: GroceryListItem(groceryItem: _groceryItems[index])
+          );
+        },
+        itemCount: _groceryItems.length,
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("GrowXery"),
@@ -50,12 +109,7 @@ class _GroceriesListState extends State<GroceriesList> {
           )*/
         ],
       ),
-      body: ListView.builder(
-        itemBuilder: (BuildContext context, int index) {
-          return GroceryListItem(groceryItem: _groceryItems[index]);
-        },
-        itemCount: _groceryItems.length,
-      ),
+      body: mainContent,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: _newItemScreen,

@@ -9,15 +9,15 @@ class GroceryListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-        leading: Icon(
-            Icons.square,
-            color: groceryItem.category.color,
-            size: 35,
-          ),
-         title: Text(
-            groceryItem.name,
-          ),
-         trailing: Text("${groceryItem.quantity}")
+          leading: Icon(
+              Icons.square,
+              color: groceryItem.category.color,
+              size: 35,
+            ),
+           title: Text(
+              groceryItem.name,
+            ),
+           trailing: Text("${groceryItem.quantity}")
     );
   }
 }
