@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shopping_list/widgets/grocery_list_item.dart';
+import 'package:shopping_list/widgets/new_grocery_item.dart';
 
 import '../data/random_data.dart';
 
-class GroceriesScreen extends StatelessWidget {
-  const GroceriesScreen({Key? key}) : super(key: key);
+class GroceriesList extends StatelessWidget {
+  const GroceriesList({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -14,9 +15,19 @@ class GroceriesScreen extends StatelessWidget {
       ),
       body: ListView.builder(
         itemBuilder: (BuildContext context, int index) {
-          return GroceriesList(groceryItem: groceryItems[index]);
+          return GroceryListItem(groceryItem: groceryItems[index]);
         },
         itemCount: groceryItems.length,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const NewGroceryItem()));
+        },
+        child: const Icon(
+          Icons.add,
+          size: 40,
+        ),
       ),
     );
   }

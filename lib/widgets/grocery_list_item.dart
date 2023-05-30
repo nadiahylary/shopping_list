@@ -2,32 +2,22 @@ import 'package:flutter/material.dart';
 
 import '../models/grocery_item.dart';
 
-class GroceriesList extends StatelessWidget {
-  const GroceriesList({Key? key, required this.groceryItem}) : super(key: key);
+class GroceryListItem extends StatelessWidget {
+  const GroceryListItem({Key? key, required this.groceryItem}) : super(key: key);
   final GroceryItem groceryItem;
 
   @override
   Widget build(BuildContext context) {
-    return  Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(
+    return ListTile(
+        leading: Icon(
             Icons.square,
             color: groceryItem.category.color,
-            size: 40,
+            size: 35,
           ),
-          const SizedBox(
-            width: 20,
-          ),
-          Text(
+         title: Text(
             groceryItem.name,
           ),
-          const Spacer(),
-          Text("${groceryItem.quantity}")
-        ],
-      ),
+         trailing: Text("${groceryItem.quantity}")
     );
   }
 }
