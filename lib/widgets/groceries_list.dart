@@ -53,6 +53,7 @@ class _GroceriesListState extends State<GroceriesList> {
         height: 400,
         margin: const EdgeInsets.all(10),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Image.asset(
               "assets/images/empty-shopping-cart.png",
@@ -62,7 +63,7 @@ class _GroceriesListState extends State<GroceriesList> {
               height: 50,
             ),
             const Text(
-              "You have no grocery item yet.",
+              "You have no groceries items yet.",
             ),
           ],
         ),
@@ -89,7 +90,7 @@ class _GroceriesListState extends State<GroceriesList> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("GrowXery"),
+        title: const Text("Grow-Xery"),
         actions: [
           IconButton(
             onPressed: _newItemScreen,
