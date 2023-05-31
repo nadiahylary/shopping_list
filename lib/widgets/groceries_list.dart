@@ -102,19 +102,6 @@ class _GroceriesListState extends State<GroceriesList> {
         _groceryItems.insert(groceryItemIndex, groceryItem);
       });
     }
-    /*ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: Theme.of(context).colorScheme.secondary,
-      duration: const Duration(seconds: 3),
-      content: const Text("Grocery Item Deleted."),
-      action: SnackBarAction(
-          label: "Undo",
-          onPressed: () {
-            setState(() {
-              _groceryItems.insert(groceryItemIndex, groceryItem);
-            });
-          }),
-    ));*/
   }
 
   @override
