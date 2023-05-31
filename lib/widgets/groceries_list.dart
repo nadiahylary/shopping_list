@@ -1,8 +1,10 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/widgets/grocery_list_item.dart';
 import 'package:shopping_list/widgets/new_grocery_item.dart';
-
-//import '../data/random_data.dart';
+import 'package:http/http.dart' as http;
 import '../models/grocery_item.dart';
 
 class GroceriesList extends StatefulWidget {
@@ -13,11 +15,62 @@ class GroceriesList extends StatefulWidget {
 }
 
 class _GroceriesListState extends State<GroceriesList> {
-  final List<GroceryItem> _groceryItems = [];
+  List<GroceryItem> _groceryItems = [];
+  var _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGroceryItems();
+  }
+
+  void _loadGroceryItems() async{
+    final url = Uri.https(
+        'flutter-meals-app-e9e6f-default-rtdb.europe-west1.firebasedatabase.app',
+        'shopping-list.json'
+    );
+    try{
+      final response = await http.get(url);
+      if(response.statusCode >= 400){
+        setState(() {
+          _error = "Failed to fetch the data. Please try again later.";
+        });
+      }
+      if(response.body == "null"){
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+      final Map<String, dynamic> groceryData = json.decode(response.body);
+      final List<GroceryItem> loadedGroceryItems = [];
+      for(final item in groceryData.entries){
+        final category = categories.entries.firstWhere(
+                (catItem) => catItem.value.title == item.value['category']).value;
+        GroceryItem groceryItem = GroceryItem(
+            id: item.key,
+            name: item.value['name'],
+            quantity: item.value['quantity'],
+            category: category
+        );
+        loadedGroceryItems.add(groceryItem);
+      }
+      setState(() {
+        _groceryItems = loadedGroceryItems;
+        _isLoading = false;
+      });
+    } catch(error){
+      setState(() {
+        _error = "Something went wrong! Please try again later.";
+      });
+    }
+
+  }
 
   void _newItemScreen() async {
-    final newGroceryItem = await Navigator.of(context).push<GroceryItem>(MaterialPageRoute(builder: (ctx) => const NewGroceryItem()));
-
+    final newGroceryItem = await Navigator.of(context).push<GroceryItem>(
+        MaterialPageRoute(builder: (ctx) => const NewGroceryItem()));
     if(newGroceryItem == null){
       return;
     }
@@ -25,12 +78,31 @@ class _GroceriesListState extends State<GroceriesList> {
       _groceryItems.add(newGroceryItem);
     });
   }
-  void _deleteGroceryItem(GroceryItem groceryItem) {
+  void _deleteGroceryItem(GroceryItem groceryItem) async {
     final groceryItemIndex = _groceryItems.indexOf(groceryItem);
     setState(() {
       _groceryItems.remove(groceryItem);
     });
-    ScaffoldMessenger.of(context).clearSnackBars();
+
+    final url = Uri.https(
+        'flutter-meals-app-e9e6f-default-rtdb.europe-west1.firebasedatabase.app',
+        'shopping-list/${groceryItem.id}.json'
+    );
+    final response = await http.delete(url);
+    if(response.statusCode >= 400){
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Theme.of(context).colorScheme.secondary,
+            duration: const Duration(seconds: 3),
+            content: const Text("Couldn't delete Grocery Item."),
+          )
+      );
+      setState(() {
+        _groceryItems.insert(groceryItemIndex, groceryItem);
+      });
+    }
+    /*ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       backgroundColor: Theme.of(context).colorScheme.secondary,
       duration: const Duration(seconds: 3),
@@ -42,7 +114,7 @@ class _GroceriesListState extends State<GroceriesList> {
               _groceryItems.insert(groceryItemIndex, groceryItem);
             });
           }),
-    ));
+    ));*/
   }
 
   @override
@@ -69,6 +141,17 @@ class _GroceriesListState extends State<GroceriesList> {
         ),
       ),
     );
+
+    if(_isLoading){
+      mainContent = const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+    if(_error != null){
+      mainContent = Center(
+        child: Text(_error!),
+      );
+    }
 
     if (_groceryItems.isNotEmpty) {
       mainContent = ListView.builder(

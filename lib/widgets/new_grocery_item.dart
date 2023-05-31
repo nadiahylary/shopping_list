@@ -1,10 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shopping_list/data/categories.dart';
-import 'package:shopping_list/data/random_data.dart';
 import 'package:shopping_list/models/grocery_item.dart';
-import 'package:shopping_list/widgets/groceries_list.dart';
-
 import '../models/category.dart';
+import 'package:http/http.dart' as http;
 
 class NewGroceryItem extends StatefulWidget {
   const NewGroceryItem({Key? key}) : super(key: key);
@@ -18,16 +18,52 @@ class _NewGroceryItemState extends State<NewGroceryItem> {
   String _enteredName = '';
   int _enteredQty = 1;
   Category _selectedCategory = categories[Categories.hygiene]!;
+  var _isSending = false;
 
 
-  void _saveGroceryItem(){
+  void _saveGroceryItem() async{
     if(_formKey.currentState!.validate()){
       _formKey.currentState!.save();
-      GroceryItem newItem = GroceryItem(id: "g20", name: _enteredName, quantity: _enteredQty, category: _selectedCategory);
-      Navigator.of(context).pop(
-        newItem
+      setState(() {
+        _isSending = true;
+      });
+      final url = Uri.https(
+          'flutter-meals-app-e9e6f-default-rtdb.europe-west1.firebasedatabase.app',
+          'shopping-list.json'
       );
-      //Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const GroceriesList()));
+      try{
+        final response = await http.post(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: json.encode({
+              'name': _enteredName,
+              'quantity': _enteredQty,
+              'category': _selectedCategory.title,
+            })
+        );
+
+        if(!context.mounted){
+          return;
+        }
+        final Map<String, dynamic> itemData = json.decode(response.body);
+
+        GroceryItem newItem = GroceryItem(
+            id: itemData['name'],
+            name: _enteredName,
+            quantity: _enteredQty,
+            category: _selectedCategory
+        );
+        Navigator.of(context).pop(
+            newItem
+        );
+      }catch(e){
+        setState(() {
+          Text(e.toString());
+        });
+      }
+
     }
   }
 
@@ -129,16 +165,15 @@ class _NewGroceryItemState extends State<NewGroceryItem> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       TextButton(
-                          onPressed: (){
+                          onPressed: _isSending ? null : (){
                             Navigator.of(context).pop();
-                            //_formKey.currentState!.reset();
                           },
                           child: const Text("Cancel")),
                       const SizedBox(
                         width: 35,
                       ),
                       TextButton(
-                          onPressed: (){
+                          onPressed: _isSending ? null : (){
                             _formKey.currentState!.reset();
                           },
                           child: const Text("Reset")),
@@ -146,11 +181,16 @@ class _NewGroceryItemState extends State<NewGroceryItem> {
                         width: 35,
                       ),
                       ElevatedButton(
-                          onPressed: _saveGroceryItem,
-                          child: const Text("Add Item")
+                          onPressed: _isSending ? null : _saveGroceryItem,
+                          child: _isSending ? const SizedBox(
+                            width: 20,
+                            height: 16,
+                            child: CircularProgressIndicator(),
+                          ) : const Text("Add Item")
                       ),
                     ],
-                  )
+                  ),
+
                 ],
               ),
             )
